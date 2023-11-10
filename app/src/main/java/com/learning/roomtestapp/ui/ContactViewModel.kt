@@ -7,16 +7,21 @@ import com.learning.roomtestapp.db.ContactDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.android.annotation.KoinViewModel
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@KoinViewModel
 class ContactViewModel(
     private val dao: ContactDao
 ) : ViewModel() {
+
+    private val _state = MutableStateFlow(ContactState())
+    val state = _state.asStateFlow()
 
     private val _sortType = MutableStateFlow(SortType.FIRST_NAME)
     private val _contacts = _sortType
@@ -27,13 +32,19 @@ class ContactViewModel(
                 SortType.PHONE_NUMBER -> dao.getContactOrderedByPhoneNumber()
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
-    private val _state = MutableStateFlow(ContactState())
-    val state = combine(_state, _sortType, _contacts) { state, sortType, contacts ->
-        state.copy(
-            contacts = contacts,
-            sortType = sortType
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ContactState())
+
+
+    init {
+        viewModelScope.launch {
+            _contacts.collect {
+                _state.update { state ->
+                    state.copy(
+                        contacts = it
+                    )
+                }
+            }
+        }
+    }
 
     fun onEvent(event: ContactEvent) {
         when (event) {
@@ -112,6 +123,12 @@ class ContactViewModel(
             }
 
             is ContactEvent.SortContacts -> {
+                _state.update {
+                    it.copy(
+                        sortType = event.sortType
+                    )
+                }
+
                 _sortType.value = event.sortType
             }
         }

@@ -1,5 +1,3 @@
-
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -34,11 +32,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_19
-        targetCompatibility = JavaVersion.VERSION_19
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "19"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -50,6 +48,9 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+    applicationVariants.all {
+        addJavaSourceFoldersToModel(file("build/generated/ksp/$name/kotlin"))
     }
 }
 
@@ -65,7 +66,11 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.material3.window)
     implementation(libs.koin.bom)
+    implementation(libs.koin.android)
+    implementation(libs.koin.annotations)
     implementation(libs.koin.compose)
+    implementation(libs.koin.core)
+    ksp(libs.koin.compiler)
     implementation(libs.appcompat)
     // coil managing images
     implementation(libs.coil)
