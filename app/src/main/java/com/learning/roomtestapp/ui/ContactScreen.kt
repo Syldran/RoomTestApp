@@ -21,19 +21,21 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 
 @Composable
 fun ContactScreen(
-    navController: NavController,
-    state: ContactState,
+    viewModel: ContactViewModel,
     onEvent: (ContactEvent) -> Unit
 ) {
+    val state by viewModel.state.collectAsState()
+
     Scaffold(
         modifier = Modifier.padding(8.dp),
         floatingActionButton = {
